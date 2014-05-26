@@ -29,7 +29,7 @@ type Parser struct {
 }
 
 type Node struct {
-	name string
+	Name string
 	value Value
 	kind Kind
 	Children map[string]*Node
@@ -375,7 +375,7 @@ func (this *Node) String() string {
 	}
 	
 	if (this.kind == kindValue) {
-		output += this.name + " = " + this.value.String()
+		output += this.Name + " = " + this.value.String()
 		output += "\n"
 	}
 	
@@ -383,12 +383,12 @@ func (this *Node) String() string {
 }
 
 func (this *Node) FullName() string {
-	output := this.name
+	output := this.Name
 	current := this
 	for {
 		current = current.parent
 		if current == nil || current.kind == kindRoot { break }
-		output = current.name + "." + output
+		output = current.Name + "." + output
 	}
 	return output
 }
@@ -430,12 +430,15 @@ func (this *Node) GetSection(path string) (*Node, bool) {
 	current := this
 	nameIndex := 0
 	
-	for {
+	satisfied := true
+	for satisfied {
+		satisfied = false
 		for _, node := range current.Children {
-			 if node.kind != kindSection { continue } 
-			 if node.name == names[nameIndex] {
+			 if node.kind != kindSection { continue }
+			 if node.Name == names[nameIndex] {
 			 	current = node
-			 	nameIndex++	
+				satisfied = true
+			 	nameIndex++
 			 	if nameIndex >= len(names) {
 			 		return current, true
 			 	}
@@ -443,7 +446,7 @@ func (this *Node) GetSection(path string) (*Node, bool) {
 			 }
 		}
 	}
-	
+
 	return current, false
 }
 
@@ -499,7 +502,7 @@ func (this Parser) Parse(tomlString string) Document {
 				node, ok := current.child(name)
 				if !ok {
 					section := newNodePointer()
-					section.name = name
+					section.Name = name
 					section.kind = kindSection
 					current.setChild(name, section)
 					current = section
@@ -522,7 +525,7 @@ func (this Parser) Parse(tomlString string) Document {
 			}
 		} else {
 			node := newNodePointer()
-			node.name = key
+			node.Name = key
 			node.value.raw = cleanRawValue(line[index + 1:len(line)])
 			node.kind = kindValue
 			currentSection.setChild(key, node)
